@@ -83,3 +83,42 @@ The codebase is strictly organized following Ports and Adapters to ensure the co
 Before picking up a ticket or opening a Pull Request, all engineers **must** read and follow our development standards:
 
 - 📖 **[Engineering Standard: Testing Workflow & SDLC](./testing.MD)**: Learn how to write technical ACs, generate test skeletons, and pass our CI pipeline coverage gates.
+
+## Local Development Setup
+
+### Prerequisites
+
+1. Install [Go 1.21+](https://go.dev/dl/).
+2. Install Docker and Docker Compose. Required if you want to run PostgreSQL in a container (Recommended).
+4. Install [Bruno](https://www.usebruno.com/) for API testing.
+
+### Run PostgreSQL Locally with Docker Compose
+
+```bash
+docker-compose up -d
+```
+
+### Setup `.env` File
+
+```bash
+touch .env
+```
+
+Insert the following environment variables into the `.env` file:
+
+```env
+# Database Configuration
+DATABASE_URL=postgres://analytics:analytics@{host}:{port}/analytics_aggregator
+```
+
+Notes: If you are running PostgreSQL inside a Docker container, find correct port in `docker-compose.yaml` and replace `{host}` and `{port}` accordingly.
+
+You can also set other environment variables used in `internal/config/config.go` as needed.
+
+### Run the Application
+
+```bash
+go run ./cmd/api/main.go
+```
+
+By default, the application will listen on `http://localhost:8081`. You can change the port by setting the `SERVER_PORT` environment variable in your `.env` file.
