@@ -20,4 +20,5 @@ type Event struct {
 	RawData      []byte
 	EnrichedData []byte
 	CreatedAt    pgtype.Timestamptz
+	OccurredAt   pgtype.Timestamptz
 }
