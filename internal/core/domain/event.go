@@ -1,6 +1,10 @@
 package domain
 
-import "github.com/google/uuid"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // Event represents our core business entity.
 type Event struct {
@@ -8,6 +12,7 @@ type Event struct {
 	RawData      []byte    // Storing JSON as bytes
 	EnrichedData []byte    // Storing JSON as bytes
 	ClientIP     string
+	OccurredAt   time.Time
 
 	// Transient Pipeline State (Not saved to the main DB table)
 	RetryCount  int

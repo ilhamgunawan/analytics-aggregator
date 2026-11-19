@@ -28,6 +28,7 @@ type Config struct {
 	InsertBatchSize    int
 	PipelineJobSize    int
 	BackoffMulitplier  time.Duration
+	AllowedClockDrift  time.Duration
 }
 
 func Load() (*Config, error) {
@@ -56,6 +57,7 @@ func Load() (*Config, error) {
 		InsertBatchSize:    getEnvInt("INSERT_BATCH_SIZE", 5),
 		PipelineJobSize:    getEnvInt("PIPELINE_JOB_SIZE", 50),
 		BackoffMulitplier:  parseTimeDurationUnit(getEnv("BACKOFF_MULTIPLIER", "SECOND")),
+		AllowedClockDrift:  rawSecondsToTimeDuration(getEnvInt("ALLOWED_CLOCK_DRIFT", 300)),
 	}, nil
 }
 
@@ -88,4 +90,8 @@ func parseTimeDurationUnit(unit string) time.Duration {
 	default:
 		return time.Millisecond
 	}
+}
+
+func rawSecondsToTimeDuration(raw int) time.Duration {
+	return time.Duration(raw) * time.Second
 }
