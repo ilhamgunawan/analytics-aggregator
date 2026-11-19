@@ -15,18 +15,15 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 )
 
-// testPool is shared by all integration tests in this package.
 var testPool *pgxpool.Pool
 
 func TestMain(m *testing.M) {
 	os.Exit(run(m))
 }
 
-// run exists so deferred cleanup executes before os.Exit.
 func run(m *testing.M) int {
 	ctx := context.Background()
 
-	// Only *.up.sql, sorted (001_, 002_, ...) — init scripts run alphabetically.
 	migrations, err := filepath.Glob("../../../db/migrations/*.up.sql")
 	if err != nil || len(migrations) == 0 {
 		fmt.Fprintf(os.Stderr, "find migrations: %v (found %d)\n", err, len(migrations))
