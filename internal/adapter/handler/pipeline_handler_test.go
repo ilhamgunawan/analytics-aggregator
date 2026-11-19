@@ -15,14 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Spec: docs/capture-client-timestamp.md (Technical AC 1-4)
-//
-// Requires these seams in handler.go:
-//   - eventProcessor interface, used as the type of Handler.service
-//   - Handler.now func() time.Time (injectable clock)
-
-// fakeEventProcessor is a handwritten fake of eventProcessor. It records the
-// last event it received so tests can assert on it.
 type fakePipelineService struct {
 	calls     int
 	lastEvent *domain.Event
@@ -39,21 +31,17 @@ func (f *fakePipelineService) ProcessAndStore(ctx context.Context, e *domain.Eve
 }
 
 func TestHandler_ProcessAndStoreEvents_OccurredAt(t *testing.T) {
-	// Fixed server clock and allowed drift shared by all cases.
 	fixedNow := time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC)
 	const allowedDrift = 5 * time.Minute
 
 	tests := []struct {
-		name string
-		// body is the raw request JSON, so each case controls exactly how
-		// occurred_at is encoded (absent, valid or invalid string, ...).
+		name               string
 		body               string
 		expectedStatus     int
 		expectServiceCall  bool
-		expectedOccurredAt time.Time // checked only when expectServiceCall is true
-		expectedErrMsg     string    // substring of the 400 body; empty = not checked
+		expectedOccurredAt time.Time
+		expectedErrMsg     string
 	}{
-		// ---- Technical AC 1: Happy path (Product AC 1) ----
 		{
 			name:               "positive",
 			body:               `{"event_type":"click","occurred_at":"2026-01-15T09:59:00Z"}`,
@@ -75,8 +63,6 @@ func TestHandler_ProcessAndStoreEvents_OccurredAt(t *testing.T) {
 			expectServiceCall:  true,
 			expectedOccurredAt: time.Date(2026, 1, 15, 10, 4, 59, 0, time.UTC),
 		},
-
-		// ---- Technical AC 2: Missing field (Product AC 3) ----
 		{
 			name:               "positive_empty_fallback",
 			body:               `{"event_type":"click"}`,
@@ -84,10 +70,6 @@ func TestHandler_ProcessAndStoreEvents_OccurredAt(t *testing.T) {
 			expectServiceCall:  true,
 			expectedOccurredAt: fixedNow,
 		},
-
-		// ---- Technical AC 3: Invalid format (Product AC 4) ----
-		// TODO: set expectedErrMsg to "occurred_at" once the handler returns a
-		// field-specific message for parse errors.
 		{
 			name:           "negative_invalid",
 			body:           `{"event_type":"click","occurred_at":"01-01-2026"}`,
@@ -98,8 +80,6 @@ func TestHandler_ProcessAndStoreEvents_OccurredAt(t *testing.T) {
 			body:           `{"event_type":"click","occurred_at":"invalid-date"}`,
 			expectedStatus: http.StatusBadRequest,
 		},
-
-		// ---- Technical AC 4: Future time (Product AC 4) ----
 		{
 			name:           "negative_beyond_offset",
 			body:           `{"event_type":"click","occurred_at":"2026-01-15T10:05:01Z"}`,
@@ -118,7 +98,6 @@ func TestHandler_ProcessAndStoreEvents_OccurredAt(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			// 1. Arrange
 			fp := &fakePipelineService{}
 			h := &Handler{
 				service: fp,
@@ -128,10 +107,8 @@ func TestHandler_ProcessAndStoreEvents_OccurredAt(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, "/event", strings.NewReader(tt.body))
 			rec := httptest.NewRecorder()
 
-			// 2. Act
 			h.MakeHandler(h.ProcessAndStoreEvents)(rec, req)
 
-			// 3. Assert
 			require.Equal(t, tt.expectedStatus, rec.Code, "body: %s", rec.Body.String())
 
 			if tt.expectServiceCall {
