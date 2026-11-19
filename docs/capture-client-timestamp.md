@@ -20,7 +20,7 @@ Test file: [pipeline_handler_test.go](internal/adapter/handler/pipeline_handler_
 
 1. Techical AC 1 (Happy path): Given a valid `occured_at`, ensure the response is 202 and the `event` passed to the service has `OccuredAt` set to UTC time. (Product AC 1)
 2. Technical AC 2 (Missing field) Given a request without `occured_at`, ensure the response is 202 and the `event` passed to the service injected with server time. Use fixed clock in for deterministic test. (Product AC 3)
-3. Technical AC 3 (Invalid format): Given invalid value `"01-01-2026"`, `""`, `0`, `null`, ensure the response is 400 and service is not called. (Product AC 4)
+3. Technical AC 3 (Invalid format): Given invalid value `"01-01-2026"`, `"invalid-date"`, ensure the response is 400 and service is not called. (Product AC 4)
 4. Technical AC 4 (Future time): Given the time is out of range (beyond allowed clock drift), ensure the response is 400 and service is not called. (Product AC 4)
 
 

@@ -24,7 +24,7 @@ func (h *Handler) ProcessAndStoreEvents(w http.ResponseWriter, r *http.Request) 
 		return BadRequest("event_type is required", errors.New("mandatory field not provided"))
 	}
 
-	now := time.Now().UTC()
+	now := h.now().UTC()
 
 	// Fallback occurred_at to server time when missing. occurred_at invalid value validation is handled by decoder.Decode.
 	if processEventReq.OccurredAt == nil {
@@ -36,15 +36,26 @@ func (h *Handler) ProcessAndStoreEvents(w http.ResponseWriter, r *http.Request) 
 		return BadRequest(fmt.Sprintf("Invalid request payload : %v", err), err)
 	}
 
-	rawDataBytes, err := json.Marshal(processEventReq)
+	// Normalize to UTC
+	occurredAtUtc := processEventReq.OccurredAt.UTC()
+
+	body := ProcessEventRequest{
+		UserID:     processEventReq.UserID,
+		EventType:  processEventReq.EventType,
+		ClientIP:   processEventReq.ClientIP,
+		OccurredAt: &occurredAtUtc,
+		Payload:    processEventReq.Payload,
+	}
+
+	rawDataBytes, err := json.Marshal(body)
 	if err != nil {
 		return InternalError(fmt.Sprintf("Failed to marshal raw data : %v", rawDataBytes), err)
 	}
 	event := &domain.Event{
 		ID:         uuid.New(),
 		RawData:    rawDataBytes,
-		ClientIP:   processEventReq.ClientIP,
-		OccurredAt: *processEventReq.OccurredAt,
+		ClientIP:   body.ClientIP,
+		OccurredAt: *body.OccurredAt,
 	}
 
 	affectedRecs, err := h.service.ProcessAndStore(r.Context(), event)
