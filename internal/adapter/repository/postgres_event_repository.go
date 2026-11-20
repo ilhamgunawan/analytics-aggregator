@@ -23,6 +23,10 @@ func (r *PostgresEventRepository) CreateEvents(ctx context.Context, events []dom
 				ID:           pgUUID,
 				RawData:      e.RawData,
 				EnrichedData: e.EnrichedData,
+				OccurredAt: pgtype.Timestamptz{
+					Time:  e.OccurredAt,
+					Valid: true,
+				},
 			}
 		}
 

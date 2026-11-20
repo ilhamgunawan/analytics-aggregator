@@ -13,4 +13,5 @@ type BulkInsertEventsParams struct {
 	ID           pgtype.UUID
 	RawData      []byte
 	EnrichedData []byte
+	OccurredAt   pgtype.Timestamptz
 }

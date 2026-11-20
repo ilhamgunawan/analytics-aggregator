@@ -66,6 +66,7 @@ func (r iteratorForBulkInsertEvents) Values() ([]interface{}, error) {
 		r.rows[0].ID,
 		r.rows[0].RawData,
 		r.rows[0].EnrichedData,
+		r.rows[0].OccurredAt,
 	}, nil
 }
 
@@ -74,5 +75,5 @@ func (r iteratorForBulkInsertEvents) Err() error {
 }
 
 func (q *Queries) BulkInsertEvents(ctx context.Context, arg []BulkInsertEventsParams) (int64, error) {
-	return q.db.CopyFrom(ctx, []string{"events"}, []string{"id", "raw_data", "enriched_data"}, &iteratorForBulkInsertEvents{rows: arg})
+	return q.db.CopyFrom(ctx, []string{"events"}, []string{"id", "raw_data", "enriched_data", "occurred_at"}, &iteratorForBulkInsertEvents{rows: arg})
 }
